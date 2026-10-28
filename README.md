@@ -1,90 +1,60 @@
 # Peripheral Control
 
-Aplicativo desktop para configurar periféricos USB HID no Linux, com interface em Python e PySide6 e comunicação própria com o dispositivo. O pacote e a CLI se chamam **hidctl**.
+Configure DPI e iluminação de periféricos USB HID no Linux, com edição local e aplicação somente ao clicar em **Salvar**.
 
 ![Peripheral Control em execução](docs/images/peripheral-control.png)
 
-_Captura da aplicação em execução, sem acesso ao hardware._
-
-## Funcionalidades
-
-- Edição dos cinco níveis de DPI por perfil e indicação ao vivo do nível ativo pelo botão físico.
-- Cor estática com seletor visual, hexadecimal, canais RGB e cores recentes locais.
-- Onda multicolorida com velocidade ajustável.
-- Visualização dos cinco perfis e nomes personalizados salvos localmente.
-- Edição local: somente **Salvar** grava, com backup e confirmação por releitura.
-- Modo de demonstração sem acesso a dispositivos físicos.
-
-## Compatibilidade
-
-Validado no **Cobra M711 do kit S118**, USB `04d9:fc30`, revisão `0x0112`. Outros modelos ou revisões não têm suporte confirmado.
-
-DPI disponível: **500, 800, 1000, 1200, 2000, 2400, 3000, 3600 e 5000**. São valores nominais, sem medição da precisão física. A faixa anunciada de 10.000 DPI não está liberada.
-
-A onda é multicolorida e ignora a cor selecionada. Não há ativação de perfis no hardware ou edição de brilho. Macros, remapeamento, polling rate e teclado ainda não estão implementados.
+_Print da aplicação conectada ao Cobra M711 no Linux._
 
 ## Instalação
 
-Requisitos: Linux, Python 3.11 ou superior e ambiente gráfico compatível com Qt/PySide6.
+O ambiente de referência é **Arch Linux**. Em outras distribuições, o instalador pergunta se deseja continuar, com **Não** como padrão.
+
+Baixe o repositório (ou extraia o ZIP do GitHub) e execute:
 
 ```bash
 git clone https://github.com/LucasLouvem/Peripheral-Control.git
 cd Peripheral-Control
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e '.[gui]'
-hidctl-gui
+./scripts/install.sh
 ```
 
-Para explorar sem hardware:
+O instalador prepara o ambiente Python isolado, configura o acesso ao mouse e cria um ícone **Peripheral Control** no menu de aplicativos. Usa sudo somente quando precisa de pacotes do sistema ou da regra udev; não execute o instalador inteiro como root.
+
+Depois, abra pelo menu ou abra um novo terminal e execute `hidctl-gui` de qualquer diretório. O instalador configura `~/.local/bin` no PATH do seu shell. Para explorar sem hardware, use `hidctl-gui --demo`.
+
+## Atualização
+
+Feche a ferramenta e execute:
 
 ```bash
-hidctl-gui --demo
+hidctl-gui --update
 ```
 
-### Permissão de acesso ao mouse
+A atualização busca a `main` oficial, valida a nova instalação e só então a ativa. Falhas de preparação preservam a versão anterior e os dados pessoais.
 
-Execute o aplicativo como usuário comum. Instale a regra específica para conceder acesso à interface de configuração:
+## Desinstalação
+
+Feche a ferramenta e execute:
 
 ```bash
-sudo install -m 0644 packaging/udev/70-hidctl-04d9-fc30.rules /etc/udev/rules.d/
-sudo udevadm control --reload
-sudo udevadm trigger --action=change --subsystem-match=hidraw
+hidctl-gui --uninstall
 ```
 
-Reconecte o mouse se necessário. A regra utiliza `uaccess`, para o usuário da sessão local ativa.
+Confirme a desinstalação quando solicitado. Preferências e backups são preservados; a remoção da regra de acesso ao mouse é opcional.
 
-## Uso
-
-1. Abra o aplicativo para carregar as configurações do mouse.
-2. Ajuste o DPI ou a iluminação. Confirmar uma cor no modal apenas prepara a edição.
-3. Clique em **Salvar** para gravar e confirmar por releitura.
-
-O salvamento não é atômico: uma falha pode deixar alterações parciais. A interface informa falhas e estados não confirmados. A releitura confirma os dados; confira o efeito luminoso visualmente.
-
-Inspeção pela CLI:
+Para **apagar também todas as preferências e backups**, use:
 
 ```bash
-python -m hidctl.cli dpi-inspect
-python -m hidctl.cli dpi-read --trace
+hidctl-gui --uninstall A
 ```
 
-Preferências e backups ficam em `~/.local/state/hidctl/`. O comando opcional `hidctl devices` requer o extra `hid`: `python -m pip install -e '.[hid]'`.
+Essa opção pede confirmação e apaga os dados definitivamente. Também remove a regra de acesso do projeto, se ela ainda corresponder à instalada, solicitando sudo.
 
-## Desenvolvimento e contribuições
+## Saiba mais
 
-```bash
-python -m pip install -e '.[gui,dev]'
-ruff check .
-ruff format --check .
-QT_QPA_PLATFORM=offscreen pytest
-npx prettier@3.8.1 --check '**/*.md' '*.json'
-```
+- [Dispositivos compatíveis e limitações](docs/dispositivos_compativeis.md)
+- [Como contribuir](docs/como_contribuir.md)
+- [Instalação e atualização](docs/instalacao.md)
+- [Funcionamento e protocolos](docs/README.md)
 
-Python é formatado com Ruff; Markdown e JSON, com Prettier. Os [testes físicos](tests_physical/README.md) ficam separados da suíte automática.
-
-Contribuições são bem-vindas. Consulte as [diretrizes e referências dos dispositivos](docs/README.md). Novos modelos precisam de identificação e evidências próprias de compatibilidade.
-
-## Licença
-
-[MIT](LICENSE). Projeto independente, sem afiliação aos fabricantes citados.
+[Licença MIT](LICENSE). Projeto independente, sem afiliação aos fabricantes.
