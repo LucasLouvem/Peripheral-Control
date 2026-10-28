@@ -1,0 +1,4 @@
+# hidctl — acesso do usuário da sessão ativa (uaccess) a UMA interface hidraw:
+# a de configuração do mouse 04d9:fc30, revisão 0x0112, interface USB 02.
+# Não libera as interfaces de mouse/teclado de boot (00 e 01) nem outros dispositivos.
+SUBSYSTEM=="hidraw", ENV{ID_VENDOR_ID}=="04d9", ENV{ID_MODEL_ID}=="fc30", ENV{ID_USB_INTERFACE_NUM}=="02", ENV{ID_REVISION}=="0112", TAG+="uaccess"
