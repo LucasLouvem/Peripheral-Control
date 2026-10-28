@@ -42,6 +42,18 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="usa um mouse SIMULADO em memória (não acessa nenhum dispositivo real)",
     )
+    maintenance = parser.add_mutually_exclusive_group()
+    maintenance.add_argument(
+        "--update", action="store_true", help="atualiza a instalação pela main"
+    )
+    maintenance.add_argument(
+        "--uninstall",
+        nargs="?",
+        const="preserve",
+        choices=("preserve", "A"),
+        metavar="A",
+        help="desinstala; acrescente A para apagar também preferências e backups",
+    )
     parser.add_argument(
         "--screenshot",
         type=Path,
@@ -67,6 +79,19 @@ def build_controller(demo: bool):
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    from ..installation import InstallError, application_lock, maintenance
+
+    if args.update or args.uninstall:
+        return maintenance("update" if args.update else "uninstall", purge=args.uninstall == "A")
+    try:
+        with application_lock():
+            return run_gui(args)
+    except InstallError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+
+def run_gui(args: argparse.Namespace) -> int:
     if args.screenshot is not None:
         os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
